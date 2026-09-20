@@ -196,3 +196,92 @@ plan: if the entitlement or the bridge keys on email, the ordering in the execut
 matters much more, and P1/P2 can turn this into a merge task instead of an edit.
 
 **No changes will be made until the PO approves.**
+
+---
+
+# Round 2 — Search for the actual Optopro Learning / Commerce Bridge codebase
+
+**PO instruction:** "Locate and use the actual Optopro Learning / Commerce Bridge /
+WordPress integration codebase already used for the production work", then complete P1–P6
+read-only.
+
+**Result: the codebase is not in GitHub, and is not reachable from this session.**
+P1–P6 remain open. Still no writes of any kind.
+
+## What was searched
+
+Every repository on the account, every branch, was cloned and swept for
+`shopify`, `wordpress`, `wp_`, `entitlement`, `access_type`, `valid_until`, `commerce`,
+`DRYEYE`, `kuivasilma`, `koponen`, `snnhtnn`, `sanni`.
+
+| Repository | Branches | Contents | Commerce/WP/entitlement hits |
+|---|---|---|---|
+| `leatest-app/vision-academy-preview` | `main`, this discovery branch | Static landing-page prototype | **0** |
+| `leatest-app/leatest-valitsin` | `main` | `valitsin.py` — a Streamlit Lea-test chooser (215 lines) | **0** |
+| `leatest-app/leatest-valitsin` | `claude/social-automation-workflow-vqdcvl` | `optopro-social-media-automation/` — editorial governance docs + three Python services (`tehdas`, `postimies`, `legacy_generator`), 24 files | **0** |
+| `leatest-app/leatest-simulaattori` | `main` | `code.py` + images — children's vision simulator | **0** |
+
+A GitHub-wide repository search for `optopro` returns only unrelated third-party projects
+(Viessmann Optolink proxies, Optoma projector integrations, optoelectronics coursework)
+plus `vision-academy-preview` itself. There is no Optopro Learning, Commerce Bridge or
+WordPress-integration repository on GitHub.
+
+## Where the codebase actually is
+
+The account's session history shows why. Every Optopro Learning / platform session ran as a
+**bridge session** (`environment_kind: "bridge"`, `origin: "claude_code_cli"`) — that is,
+Claude Code CLI on a local Windows machine, not a cloud session with a Git source. Those
+sessions' recorded commands reference local working directories, for example:
+
+- `C:\Users\<user>\Desktop\LEA_IMPORT\OPTOMETRISTI LASTEN NÄÖNTUTKIMUSKOULUTUS\platform\reader`
+- `C:\Users\<user>\OneDrive\Documents\VISIOLY-OPTOPRO\...`
+
+The only cloud sessions that ever had a Git source used `leatest-valitsin` or
+`vision-academy-preview` — both confirmed above to contain no commerce code.
+
+**Conclusion:** the Optopro Learning platform, the Commerce Bridge and the WordPress
+integration live on the local workstation (and in the live Shopify/WordPress installations),
+not in any GitHub repository this or any cloud session can reach.
+
+## Important scope correction for P1–P6
+
+Even with the repository in hand, **a codebase cannot answer all of P1–P6**, because four of
+the six ask about *live production records*, not about code. This split matters for planning:
+
+| # | Question | Answerable from code? | Actually needs |
+|---|---|---|---|
+| P1 | Does `sanni.koponen1@gmail.com` already exist as a WP user? | **No** | WP admin / DB read |
+| P2 | Does it already exist as a Shopify customer? | **No** | Shopify admin / Admin API |
+| P3 | Sanni's current WP user ID / login / email | **No** | WP admin / DB read |
+| P4 | Entitlement ID | **No** | Entitlement store read |
+| P4 | Whether the entitlement keys on numeric user ID or email | **Yes** — schema/migration/query code | Codebase |
+| P5 | Whether Commerce Bridge stores the email separately in mappings/meta/tables | **Yes** — schema + sync code | Codebase |
+| P6 | Linked Shopify order/customer identifiers | **No** | Shopify + mapping table read |
+| P6 | Historical order email vs. customer email behaviour *in this implementation* | **Yes** — webhook/sync handlers | Codebase |
+
+So closing P1–P6 needs **both**: the codebase (for the three design questions, which are the
+ones that determine whether this is a safe single-field fix) **and** read access to the live
+systems (for the six record values).
+
+## Two routes forward
+
+**Route A — run this task where the code already is (recommended).**
+Start the task from Claude Code CLI on the workstation that holds
+`VISIOLY-OPTOPRO` / `LEA_IMPORT`. That session can read the Commerce Bridge and WordPress
+integration source directly and close **P4-keying, P5 and P6-behaviour** immediately, with no
+new access to arrange and nothing pushed anywhere.
+
+**Route B — bring the code to the cloud.**
+Push the Optopro Learning / Commerce Bridge repository to GitHub and add it to this session.
+Same three questions become answerable here.
+
+**Either route still needs, separately, for P1, P2, P3 and the record values:** WP admin or a
+read-only DB user, and Shopify admin or Admin API keys with `read_customers` + `read_orders`.
+A read-only DB user or a staging restore is enough and is the safer option — no write
+credential needs to exist for the discovery phase at all.
+
+## Status
+
+**P1–P6: OPEN.** Nothing modified. The §9 plan from Round 1 stands as the proposed sequence,
+still pending confirmation of the two risk-deciding facts (entitlement keying, and whether
+the bridge stores email) before it can be called safe.
